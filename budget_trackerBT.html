@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BT - Budget Tracker & Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .editable-cell:hover { background-color: #f8fafc; outline: 1px dashed #6366f1; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="bg-indigo-600 text-white font-black text-xl px-3 py-1 rounded-xl shadow-sm tracking-wider">BT</div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900 hidden sm:inline">Budget Tracker & Monitoring</span>
+                </div>
+
+                <nav class="flex space-x-1 sm:space-x-2 text-xs sm:text-sm font-semibold">
+                    <button id="nav-dashboard" onclick="switchTab('dashboard')" class="px-3 py-2 rounded-lg text-indigo-600 bg-indigo-50 transition">Dashboard</button>
+                    <button id="nav-budget" onclick="switchTab('budget')" class="px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Budget Util.</button>
+                    <button id="nav-monitoring" onclick="switchTab('monitoring')" class="px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Monitoring</button>
+                    <button id="nav-summary" onclick="switchTab('summary')" class="px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Summary</button>
+                    <button id="nav-matrix" onclick="switchTab('matrix')" class="px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Add Matrix</button>
+                </nav>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span id="access-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-eye text-slate-500"></i> Viewer Mode
+                </span>
+                <button id="btn-toggle-access" onclick="handleAccessToggle()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-slate-400"></i>
+                    <span>Admin Access</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <div id="view-dashboard" class="space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+                    <p class="text-xs sm:text-sm text-slate-500">Philippine Statistics Authority - Central Office • MAS</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Total Engagements</p>
+                        <h3 id="dash-total-engagements" class="text-2xl font-extrabold text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="bg-indigo-50 p-2.5 rounded-xl text-indigo-600"><i class="fa-solid fa-handshake text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Total Monitoring Items</p>
+                        <h3 id="dash-total-monitoring" class="text-2xl font-extrabold text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="bg-blue-50 p-2.5 rounded-xl text-blue-600"><i class="fa-solid fa-list-check text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Total Allotment</p>
+                        <h3 id="dash-total-allotment" class="text-lg font-extrabold text-emerald-600 mt-1">₱0.00</h3>
+                    </div>
+                    <div class="bg-emerald-50 p-2.5 rounded-xl text-emerald-600"><i class="fa-solid fa-wallet text-lg"></i></div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Obligations Incurred</p>
+                        <h3 id="dash-total-obligations" class="text-lg font-extrabold text-rose-600 mt-1">₱0.00</h3>
+                    </div>
+                    <div class="bg-rose-50 p-2.5 rounded-xl text-rose-600"><i class="fa-solid fa-file-invoice-dollar text-lg"></i></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 uppercase">Budget Utilization Summary</h3>
+                        <p class="text-xs text-slate-500">As of 31 August 2026</p>
+                    </div>
+                    <span class="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-lg border border-slate-200">Budget Utilization</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs" id="dashboard-budget-grid">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Summary of Status</h3>
+                        <p class="text-xs text-slate-500 mb-4">Ongoing, Pending, and Done</p>
+                    </div>
+                    <div class="h-56 relative flex items-center justify-center"><canvas id="chartStatus"></canvas></div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs mt-4 pt-4 border-t border-slate-100">
+                        <div><span class="block text-slate-400 font-semibold">Ongoing</span><span id="count-ongoing" class="font-extrabold text-amber-600 text-sm">0</span></div>
+                        <div><span class="block text-slate-400 font-semibold">Pending</span><span id="count-pending" class="font-extrabold text-blue-600 text-sm">0</span></div>
+                        <div><span class="block text-slate-400 font-semibold">Done</span><span id="count-done" class="font-extrabold text-emerald-600 text-sm">0</span></div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Engagement Summary</h3>
+                        <p class="text-xs text-slate-500 mb-4">Quarterly Engagement Financial Tracking</p>
+                    </div>
+                    <div class="h-64 relative"><canvas id="chartEngagementTrend"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-budget" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Complete Budget Utilization Records</h1>
+                    <p class="text-xs sm:text-sm text-slate-500">Comprehensive records from Budget Utilization Summary</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 uppercase">Budget Utilization Summary</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded-xl overflow-hidden whitespace-nowrap bg-white">
+                        <thead class="bg-slate-100 font-bold uppercase text-slate-700">
+                            <tr>
+                                <th class="py-3 px-3 border-r">P/A/P</th>
+                                <th class="py-3 px-3 border-r">Source of Fund</th>
+                                <th class="py-3 px-3 border-r text-right">Allotment</th>
+                                <th class="py-3 px-3 border-r text-right">Adjustments</th>
+                                <th class="py-3 px-3 border-r text-right">Adjusted Allotment</th>
+                                <th class="py-3 px-3 border-r text-right">Obligations Incurred</th>
+                                <th class="py-3 px-3 border-r text-right">Balance</th>
+                                <th class="py-3 px-3 border-r text-right">BUR (%)</th>
+                                <th class="py-3 px-3 border-r text-right">Earmarked</th>
+                                <th class="py-3 px-3 border-r text-right">Balance After Earmarked</th>
+                                <th class="py-3 px-3 text-right">BUR (inclusive of Earmarked)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-budget-util-1" class="divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 uppercase">Regular Programs - Central Office</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded-xl overflow-hidden whitespace-nowrap bg-white">
+                        <thead class="bg-slate-100 font-bold uppercase text-slate-700">
+                            <tr>
+                                <th class="py-3 px-3 border-r">P/A/P</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Allotment</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">NBC 602</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Adjustments</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Adjusted Allotment</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Obligations Incurred</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Balance</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">BUR</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Earmarked</th>
+                                <th class="py-3 px-3 border-r text-right bg-slate-100">Balance After Earmarked</th>
+                                <th class="py-3 px-3 text-right bg-slate-100">BUR (inclusive of earmarked)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-budget-util-2" class="divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-monitoring" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">2026 MAS Internal Monitoring</h1>
+                    <p class="text-xs sm:text-sm text-slate-500">Complete monitoring records across all divisions</p>
+                </div>
+                <button onclick="openModal('modalMonitoring')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5 self-start">
+                    <i class="fa-solid fa-plus"></i> Add Activity Record
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700">
+                        <thead class="bg-slate-50 border-b border-slate-200 font-bold uppercase text-slate-600">
+                            <tr>
+                                <th class="py-3 px-3">Division</th>
+                                <th class="py-3 px-3">Major Activity</th>
+                                <th class="py-3 px-4">Activity Title</th>
+                                <th class="py-3 px-3">Item</th>
+                                <th class="py-3 px-3">Object of Expense</th>
+                                <th class="py-3 px-3">Source Fund</th>
+                                <th class="py-3 px-3">Type</th>
+                                <th class="py-3 px-3">Month</th>
+                                <th class="py-3 px-3">PR/Transfer No.</th>
+                                <th class="py-3 px-3 text-right">Allocated (₱)</th>
+                                <th class="py-3 px-3 text-right">Actual (₱)</th>
+                                <th class="py-3 px-3 text-center">Status</th>
+                                <th class="py-3 px-3 text-center">In Summary?</th>
+                                <th class="py-3 px-4">Remarks</th>
+                                <th class="py-3 px-3 text-center admin-only hidden">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-monitoring-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-summary" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">SUMMARY</h1>
+                    <p class="text-xs sm:text-sm text-slate-500">SUMMARY OF ALLOTMENTS, OBLIGATIONS, BALANCES AND DISBURSEMENTS</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700 border border-slate-200 rounded-xl overflow-hidden whitespace-nowrap bg-white">
+                        <thead class="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800">Object of Expenditure</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800">UACS</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Adjusted Allotment</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Q1 (1st Quarter)</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Q2 (2nd Quarter)</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Q3 (3rd Quarter)</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Q4 (4th Quarter)</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Total Obligation</th>
+                                <th class="py-3 px-3 border-r bg-slate-100 text-slate-800 text-right">Unobligated Allotment</th>
+                                <th class="py-3 px-3 bg-slate-100 text-slate-800 text-right">BUR (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-summary-content" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300">
+                            <tr id="table-summary-footer"></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-matrix" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">MATRIX OF ACTION MATTERS</h1>
+                    <p class="text-xs sm:text-sm text-slate-500">Complete deliverables and submission status across AAD, EIAD, PAD, SAD, SEAD, and OANS divisions.</p>
+                </div>
+                <button onclick="openModal('modalMatrix')" class="admin-only hidden bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-1.5 self-start">
+                    <i class="fa-solid fa-plus"></i> Add Deliverable
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-700 whitespace-nowrap">
+                        <thead class="bg-slate-50 border-b border-slate-200 font-bold uppercase text-slate-600">
+                            <tr>
+                                <th class="py-3 px-3 border-r">No.</th>
+                                <th class="py-3 px-3 border-r">Title / Activity Name</th>
+                                <th class="py-3 px-3 border-r">Type of Engagement</th>
+                                <th class="py-3 px-3 border-r">Organizer / Host (Agency)</th>
+                                <th class="py-3 px-3 border-r">Venue / Platform (for online)</th>
+                                <th class="py-3 px-3 border-r">Participants / Representatives</th>
+                                <th class="py-3 px-3 border-r">Unit / Division Involved</th>
+                                <th class="py-3 px-3 border-r">Purpose / Agenda</th>
+                                <th class="py-3 px-3 border-r">Output / Expected Deliverable / Action Matters</th>
+                                <th class="py-3 px-3 border-r">Status of Action Matters</th>
+                                <th class="py-3 px-3 border-r">Remarks / Notes</th>
+                                <th class="py-3 px-3 border-r">Next Action (for MAS/PSA) / Follow-up</th>
+                                <th class="py-3 px-3 border-r">Date of Engagement (start date)</th>
+                                <th class="py-3 px-3 border-r">Date of Engagement (end date)</th>
+                                <th class="py-3 px-3 border-r">Date Report Submitted</th>
+                                <th class="py-3 px-3 border-r text-center">Status of Submission to OANS (per OPCR)</th>
+                                <th class="py-3 px-3 text-center admin-only hidden">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-matrix-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+        <p>BT System • Auto-Saved & Fully Editable in Admin Mode</p>
+    </footer>
+
+    <div id="modalMonitoring" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900">Add Activity Monitoring Entry</h3>
+                <button onclick="closeModal('modalMonitoring')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleSaveMonitoring(event)" class="space-y-3 mt-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Division *</label><select id="monDivision" class="w-full border rounded-xl px-3 py-2"><option>AAD</option><option>SEAD</option><option>SAD</option><option>OANS</option><option>EIAD</option><option>ENRAD</option><option>PAD</option></select></div>
+                    <div><label class="block font-semibold mb-1">Major Activity *</label><input type="text" id="monMajor" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div><label class="block font-semibold mb-1">Activity Title *</label><input type="text" id="monTitle" required class="w-full border rounded-xl px-3 py-2"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Item *</label><input type="text" id="monItem" required class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">Object of Expense *</label><input type="text" id="monExpense" required class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Source Fund</label><input type="text" id="monSource" value="Current Fund" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">Type</label><input type="text" id="monType" value="Salary" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Month</label><input type="text" id="monMonth" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">PR/Transfer No.</label><input type="text" id="monPr" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Allocated (₱)</label><input type="number" id="monAllocated" step="0.01" value="0" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">Actual (₱)</label><input type="number" id="monActual" step="0.01" value="0" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Status</label><input type="text" id="monStatus" value="Paid" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">In Summary?</label><select id="monBur" class="w-full border rounded-xl px-3 py-2"><option>Yes</option><option>No</option></select></div>
+                </div>
+                <div><label class="block font-semibold mb-1">Remarks</label><input type="text" id="monRemarks" class="w-full border rounded-xl px-3 py-2"></div>
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalMonitoring')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalMatrix" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-xl p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900">Add Matrix Action Matter</h3>
+                <button onclick="closeModal('modalMatrix')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleSaveMatrix(event)" class="space-y-3 mt-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">No.</label><input type="text" id="matNo" class="w-full border rounded-xl px-3 py-2" placeholder="1"></div>
+                    <div><label class="block font-semibold mb-1">Unit / Division Involved</label><select id="matDivision" class="w-full border rounded-xl px-3 py-2"><option>AAD</option><option>EIAD</option><option>ENRAD</option><option>PAD</option><option>SAD</option><option>SEAD</option><option>OANS</option></select></div>
+                </div>
+                <div><label class="block font-semibold mb-1">Title / Activity Name *</label><input type="text" id="matTitle" required class="w-full border rounded-xl px-3 py-2"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Type of Engagement</label><input type="text" id="matType" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">Organizer / Host (Agency)</label><input type="text" id="matOrganizer" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Venue / Platform</label><input type="text" id="matVenue" class="w-full border rounded-xl px-3 py-2"></div>
+                    <div><label class="block font-semibold mb-1">Participants / Representatives</label><input type="text" id="matParticipants" class="w-full border rounded-xl px-3 py-2"></div>
+                </div>
+                <div><label class="block font-semibold mb-1">Purpose / Agenda</label><input type="text" id="matPurpose" class="w-full border rounded-xl px-3 py-2"></div>
+                <div><label class="block font-semibold mb-1">Output / Expected Deliverable / Action Matters</label><input type="text" id="matDeliverable" class="w-full border rounded-xl px-3 py-2"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-semibold mb-1">Status of Action Matters</label><select id="matStatus" class="w-full border rounded-xl px-3 py-2"><option>Ongoing</option><option>Pending</option><option>Done</option></select></div>
+                    <div><label class="block font-semibold mb-1">Status of Submission to OANS</label><select id="matOans" class="w-full border rounded-xl px-3 py-2"><option>NO SUBMISSION YET</option><option>SUBMITTED</option></select></div>
+                </div>
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modalMatrix')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isAdmin = false;
+        let chartStatusInstance = null;
+        let chartEngagementTrendInstance = null;
+        const ADMIN_PASSWORD = "0427";
+
+        let dbDashboardBudget = JSON.parse(localStorage.getItem('bt_dash_budget')) || {
+            allotment: 102945000.00,
+            nbc602: -5315663.19,
+            obligations: 9585658.22,
+            earmarked: 1601550.00
+        };
+
+        let dbBudgetUtilTable1 = JSON.parse(localStorage.getItem('bt_bud_tab1')) || [
+            { pap: "Development and improvement of statistical frameworks and standards", fund: "Current Fund", allotment: 102945000.00, adj: 0.00, obligations: 40790151.70, earmarked: 0.00 },
+            { pap: "Development and improvement of statistical frameworks and standards", fund: "Continuing Fund", allotment: 5345143.20, adj: 0.00, obligations: 0.00, earmarked: 0.00 }
+        ];
+
+        let dbBudgetUtilTable2 = JSON.parse(localStorage.getItem('bt_bud_tab2')) || [
+            { pap: "Development and Improvement of Statistical Frameworks and Standards", allotment: 102945000.00, nbc602: -5315663.19, adj: -61956894.60, obligations: 9585658.22, earmarked: 1601550.00 }
+        ];
+
+        let dbSummaryFull = JSON.parse(localStorage.getItem('bt_summary')) || [
+            { object: "Travelling Expense - Local", uacs: "5020101000", adjAllot: 5293519.00, q1: 992266.32, q2: 466753.50, q3: 1620000.00, q4: 0, totObli: 3079019.82, unob: 2214499.18, bur: "58.17%" },
+            { object: "Travelling Expense - Foreign", uacs: "5020102000", adjAllot: 3556000.00, q1: 768303.11, q2: 65087.34, q3: 4337.00, q4: 0, totObli: 837727.45, unob: 2718272.55, bur: "23.56%" },
+            { object: "Training Expenses", uacs: "5020201002", adjAllot: 9339487.00, q1: 674890.00, q2: 153390.00, q3: 760270.00, q4: 0, totObli: 1588550.00, unob: 7750937.00, bur: "17.01%" },
+            { object: "ICT Training", uacs: "5020201001", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Office Supplies Expenses", uacs: "5020301002", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Accountable Forms Expenses", uacs: "5020302000", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Drugs and Medicine Expenses", uacs: "5020307000", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "ICT Office Supplies", uacs: "5020301001", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Fuel, Oil & Lubricants", uacs: "5020309000", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Semi-Expendable Office Equipment", uacs: "5020321002", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Semi-Expendable ICT Equipment", uacs: "5020321003", adjAllot: 0, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 0, bur: "0.00%" },
+            { object: "Other Supplies and Materials Expenses", uacs: "5020399000", adjAllot: 1066750.00, q1: 3000.00, q2: 74950.00, q3: 0, q4: 0, totObli: 77950.00, unob: 988800.00, bur: "7.31%" },
+            { object: "Telephone - Mobile", uacs: "5020502001", adjAllot: 182700.00, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 182700.00, bur: "0.00%" },
+            { object: "Other Professional Services", uacs: "5021199000", adjAllot: 216180.00, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 216180.00, bur: "0.00%" },
+            { object: "Other General Services", uacs: "5021299099", adjAllot: 18964561.40, q1: 995627.78, q2: 1073962.10, q3: 1410250.57, q4: 0, totObli: 3479840.45, unob: 15484720.95, bur: "18.35%" },
+            { object: "Fidelity Bond Premiums", uacs: "5021502000", adjAllot: 4000.00, q1: 562.50, q2: 0, q3: 0, q4: 0, totObli: 562.50, unob: 3437.50, bur: "14.06%" },
+            { object: "Printing & Publication Expenses", uacs: "5029902000", adjAllot: 471200.00, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 471200.00, bur: "0.00%" },
+            { object: "Representation Expenses", uacs: "5029903000", adjAllot: 842708.00, q1: 113108.00, q2: 307200.00, q3: 0, q4: 0, totObli: 420308.00, unob: 422400.00, bur: "49.88%" },
+            { object: "Rents - Building and Structures", uacs: "5029905001", adjAllot: 455000.00, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 455000.00, bur: "0.00%" },
+            { object: "Rent - Equipment", uacs: "5029905004", adjAllot: 460000.00, q1: 0, q2: 0, q3: 0, q4: 0, totObli: 0, unob: 460000.00, bur: "0.00%" },
+            { object: "Rent - Motor Vehicle", uacs: "5029905003", adjAllot: 136000.00, q1: 33900.00, q2: 33900.00, q3: 33900.00, q4: 0, totObli: 101700.00, unob: 34300.00, bur: "74.78%" }
+        ];
+
+        let dbMonitoring = JSON.parse(localStorage.getItem('bt_monitoring')) || [
+            { id: 1, division: "SEAD", major: "PPA", title: "Task Force Training on Subnational Economic Accounts System", item: "Meals", expense: "Traning Expense", source: "Current Fund", type: "PPMP", month: "February", pr: "PR-26-01-0024", allocated: 331500.00, actual: 267750.00, status: "Paid", bur: "Yes", remarks: "" }
+        ];
+
+        let dbMatrix = JSON.parse(localStorage.getItem('bt_matrix')) || [
+            { id: 1, no: "1", division: "SEAD", title: "Inter-Agency Committee Meeting", type: "Meeting", organizer: "PSA", venue: "Zoom", participants: "All Divisions", purpose: "Coordination", deliverable: "Minutes of Meeting", status: "Done", oans: "SUBMITTED" }
+        ];
+
+        function saveData() {
+            localStorage.setItem('bt_dash_budget', JSON.stringify(dbDashboardBudget));
+            localStorage.setItem('bt_bud_tab1', JSON.stringify(dbBudgetUtilTable1));
+            localStorage.setItem('bt_bud_tab2', JSON.stringify(dbBudgetUtilTable2));
+            localStorage.setItem('bt_summary', JSON.stringify(dbSummaryFull));
+            localStorage.setItem('bt_monitoring', JSON.stringify(dbMonitoring));
+            localStorage.setItem('bt_matrix', JSON.stringify(dbMatrix));
+        }
+
+        function switchTab(tabId) {
+            ['dashboard', 'budget', 'monitoring', 'summary', 'matrix'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+                const navBtn = document.getElementById('nav-' + t);
+                if (navBtn) {
+                    navBtn.className = "px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition";
+                }
+            });
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) {
+                activeNav.className = "px-3 py-2 rounded-lg text-indigo-600 bg-indigo-50 transition";
+            }
+            if (tabId === 'dashboard') renderCharts();
+        }
+
+        function handleAccessToggle() {
+            if (!isAdmin) {
+                const pwd = prompt("Enter Admin Password:");
+                if (pwd !== ADMIN_PASSWORD) {
+                    if (pwd !== null) alert("Incorrect password!");
+                    return;
+                }
+            }
+
+            isAdmin = !isAdmin;
+            const badge = document.getElementById('access-badge');
+            const btn = document.getElementById('btn-toggle-access');
+            if (isAdmin) {
+                badge.className = "px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1.5";
+                badge.innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-600"></i> Admin Mode`;
+                btn.className = "bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5";
+                btn.innerHTML = `<i class="fa-solid fa-lock-open text-rose-200"></i><span>Exit Admin</span>`;
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.className = "px-2.5 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5";
+                badge.innerHTML = `<i class="fa-solid fa-eye text-slate-500"></i> Viewer Mode`;
+                btn.className = "bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5";
+                btn.innerHTML = `<i class="fa-solid fa-lock text-slate-400"></i><span>Admin Access</span>`;
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            }
+            renderAllTables();
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+        function formatCurrency(val) {
+            return '₱' + Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function updateDashboardBudget(field, value) {
+            if (!isAdmin) return;
+            const num = parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
+            dbDashboardBudget[field] = num;
+            saveData();
+            renderAllTables();
+        }
+
+        function updateBudgetUtil1(index, field, value) {
+            if (!isAdmin) return;
+            const num = isNaN(value) ? value : parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
+            dbBudgetUtilTable1[index][field] = num;
+            saveData();
+            renderAllTables();
+        }
+
+        function updateBudgetUtil2(index, field, value) {
+            if (!isAdmin) return;
+            const num = isNaN(value) ? value : parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
+            dbBudgetUtilTable2[index][field] = num;
+            saveData();
+            renderAllTables();
+        }
+
+        function updateCell(type, id, field, value) {
+            if (!isAdmin) return;
+            if (type === 'summary') {
+                dbSummaryFull[id][field] = isNaN(value) ? value : parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
+            } else if (type === 'monitoring') {
+                const item = dbMonitoring.find(x => x.id === id);
+                if (item) item[field] = isNaN(value) ? value : parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
+            } else if (type === 'matrix') {
+                const item = dbMatrix.find(x => x.id === id);
+                if (item) item[field] = value;
+            }
+            saveData();
+        }
+
+        function renderAllTables() {
+            const allotment = dbDashboardBudget.allotment;
+            const nbc602 = dbDashboardBudget.nbc602;
+            const obligations = dbDashboardBudget.obligations;
+            const earmarked = dbDashboardBudget.earmarked;
+
+            const adjustedAllotment = allotment + nbc602;
+            const balanceAfterEarmarked = adjustedAllotment - obligations - earmarked;
+            const burInclusive = adjustedAllotment > 0 ? ((obligations + earmarked) / adjustedAllotment * 100).toFixed(2) + '%' : '0.00%';
+
+            const grid = document.getElementById('dashboard-budget-grid');
+            grid.innerHTML = `
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <span class="block text-[10px] font-semibold text-slate-400 uppercase">Allotment</span>
+                    <span class="font-bold text-slate-900 text-sm ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateDashboardBudget('allotment', this.innerText)"` : ''}>${formatCurrency(allotment)}</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <span class="block text-[10px] font-semibold text-slate-400 uppercase">NBC 602</span>
+                    <span class="font-bold text-slate-900 text-sm ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateDashboardBudget('nbc602', this.innerText)"` : ''}>${formatCurrency(nbc602)}</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <span class="block text-[10px] font-semibold text-rose-600 uppercase">Obligations Incurred</span>
+                    <span class="font-bold text-rose-700 text-sm ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateDashboardBudget('obligations', this.innerText)"` : ''}>${formatCurrency(obligations)}</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <span class="block text-[10px] font-semibold text-slate-700 uppercase">Earmarked</span>
+                    <span class="font-bold text-slate-900 text-sm ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateDashboardBudget('earmarked', this.innerText)"` : ''}>${formatCurrency(earmarked)}</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <span class="block text-[10px] font-semibold text-slate-400 uppercase">Balance After Earmarked</span>
+                    <span class="font-bold text-slate-900 text-sm">${formatCurrency(balanceAfterEarmarked)}</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 col-span-2 sm:col-span-2 lg:col-span-1">
+                    <span class="block text-[10px] font-semibold text-indigo-700 uppercase">BUR (inclusive)</span>
+                    <span class="font-bold text-indigo-900 text-base">${burInclusive}</span>
+                </div>
+            `;
+
+            const budTab1 = document.getElementById('table-budget-util-1');
+            budTab1.innerHTML = dbBudgetUtilTable1.map((row, index) => {
+                const adjAllot = row.allotment + row.adj;
+                const balance = adjAllot - row.obligations;
+                const bur = adjAllot > 0 ? (row.obligations / adjAllot * 100).toFixed(2) + '%' : '0.00%';
+                const balAfterEarmark = balance - row.earmarked;
+                const burInc = adjAllot > 0 ? ((row.obligations + row.earmarked) / adjAllot * 100).toFixed(2) + '%' : '0.00%';
+
+                return `
+                    <tr class="bg-white">
+                        <td class="py-3 px-3 border-r font-semibold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'pap', this.innerText)"` : ''}>${row.pap}</td>
+                        <td class="py-3 px-3 border-r font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'fund', this.innerText)"` : ''}>${row.fund}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'allotment', this.innerText)"` : ''}>${row.allotment}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'adj', this.innerText)"` : ''}>${row.adj}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white">${adjAllot}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'obligations', this.innerText)"` : ''}>${row.obligations}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white">${balance}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white">${bur}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil1(${index}, 'earmarked', this.innerText)"` : ''}>${row.earmarked}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white">${balAfterEarmark}</td>
+                        <td class="py-3 px-3 text-right bg-white">${burInc}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const budTab2 = document.getElementById('table-budget-util-2');
+            budTab2.innerHTML = dbBudgetUtilTable2.map((row, index) => {
+                const adjAllot2 = row.allotment + row.nbc602 + row.adj;
+                const balance2 = adjAllot2 - row.obligations;
+                const bur2 = adjAllot2 > 0 ? (row.obligations / adjAllot2 * 100).toFixed(2) + '%' : '0.00%';
+                const balAfterEarmark2 = balance2 - row.earmarked;
+                const burInc2 = adjAllot2 > 0 ? ((row.obligations + row.earmarked) / adjAllot2 * 100).toFixed(2) + '%' : '0.00%';
+
+                return `
+                    <tr class="bg-white">
+                        <td class="py-3 px-3 border-r font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'pap', this.innerText)"` : ''}>${row.pap}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'allotment', this.innerText)"` : ''}>${row.allotment}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'nbc602', this.innerText)"` : ''}>${row.nbc602}</td>
+                        <td class="py-3 px-3 border-r text-right bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'adj', this.innerText)"` : ''}>${row.adj}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white">${adjAllot2}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'obligations', this.innerText)"` : ''}>${row.obligations}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white">${balance2}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white">${bur2}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateBudgetUtil2(${index}, 'earmarked', this.innerText)"` : ''}>${row.earmarked}</td>
+                        <td class="py-3 px-3 border-r text-right font-bold bg-white">${balAfterEarmark2}</td>
+                        <td class="py-3 px-3 text-right font-bold bg-white">${burInc2}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const summaryBody = document.getElementById('table-summary-content');
+            summaryBody.innerHTML = dbSummaryFull.map((item, index) => `
+                <tr class="bg-white hover:bg-slate-50">
+                    <td class="py-2.5 px-3 border-r font-semibold text-slate-900 bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'object', this.innerText)"` : ''}>${item.object}</td>
+                    <td class="py-2.5 px-3 border-r text-slate-500 bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'uacs', this.innerText)"` : ''}>${item.uacs}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-semibold text-emerald-700 bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'adjAllot', this.innerText)"` : ''}>${item.adjAllot}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'q1', this.innerText)"` : ''}>${item.q1}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'q2', this.innerText)"` : ''}>${item.q2}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'q3', this.innerText)"` : ''}>${item.q3}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-medium bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'q4', this.innerText)"` : ''}>${item.q4}</td>
+                    <td class="py-2.5 px-3 border-r text-right font-bold text-blue-600 bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'totObli', this.innerText)"` : ''}>${item.totObli}</td>
+                    <td class="py-2.5 px-3 border-r text-right text-emerald-600 font-semibold bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'unob', this.innerText)"` : ''}>${item.unob}</td>
+                    <td class="py-2.5 px-3 text-right font-extrabold text-slate-900 bg-white ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('summary', ${index}, 'bur', this.innerText)"` : ''}>${item.bur}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('table-summary-footer').innerHTML = `
+                <td class="py-3.5 px-3 font-extrabold uppercase bg-slate-100" colspan="2">GRAND TOTAL</td>
+                <td class="py-3.5 px-3 text-right font-extrabold text-emerald-700 bg-slate-100">${formatCurrency(40988105.40)}</td>
+                <td class="py-3.5 px-3 text-right font-extrabold bg-slate-100">${formatCurrency(3581657.71)}</td>
+                <td class="py-3.5 px-3 text-right font-extrabold bg-slate-100">${formatCurrency(2175242.94)}</td>
+                <td class="py-3.5 px-3 text-right font-extrabold bg-slate-100">${formatCurrency(3828757.57)}</td>
+                <td class="py-3.5 px-3 text-right font-extrabold bg-slate-100">₱0.00</td>
+                <td class="py-3.5 px-3 text-right font-extrabold text-blue-700 bg-slate-100">${formatCurrency(9585658.22)}</td>
+                <td class="py-3.5 px-3 text-right font-extrabold text-emerald-700 bg-slate-100">${formatCurrency(31402447.18)}</td>
+                <td class="py-3.5 px-3 text-right font-black text-slate-900 bg-slate-100">23.39%</td>
+            `;
+
+            document.getElementById('table-monitoring-body').innerHTML = dbMonitoring.map(m => `
+                <tr class="bg-white hover:bg-slate-50">
+                    <td class="py-3 px-3 font-bold ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'division', this.innerText)"` : ''}>${m.division}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'major', this.innerText)"` : ''}>${m.major}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'title', this.innerText)"` : ''}>${m.title}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'item', this.innerText)"` : ''}>${m.item}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'expense', this.innerText)"` : ''}>${m.expense}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'source', this.innerText)"` : ''}>${m.source}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'type', this.innerText)"` : ''}>${m.type}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'month', this.innerText)"` : ''}>${m.month}</td>
+                    <td class="py-3 px-3 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'pr', this.innerText)"` : ''}>${m.pr}</td>
+                    <td class="py-3 px-3 text-right ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'allocated', this.innerText)"` : ''}>${m.allocated}</td>
+                    <td class="py-3 px-3 text-right font-semibold ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'actual', this.innerText)"` : ''}>${m.actual}</td>
+                    <td class="py-3 px-3 text-center ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'status', this.innerText)"` : ''}><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">${m.status}</span></td>
+                    <td class="py-3 px-3 text-center font-bold ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'bur', this.innerText)"` : ''}>${m.bur}</td>
+                    <td class="py-3 px-4 text-slate-500 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('monitoring', ${m.id}, 'remarks', this.innerText)"` : ''}>${m.remarks}</td>
+                    <td class="py-3 px-3 text-center admin-only ${isAdmin ? '' : 'hidden'}">
+                        <button onclick="deleteMonitoring(${m.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('table-matrix-body').innerHTML = dbMatrix.map(x => `
+                <tr class="bg-white hover:bg-slate-50">
+                    <td class="py-3 px-3 border-r font-bold ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'no', this.innerText)"` : ''}>${x.no}</td>
+                    <td class="py-3 px-3 border-r font-semibold text-slate-900 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'title', this.innerText)"` : ''}>${x.title}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'type', this.innerText)"` : ''}>${x.type}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'organizer', this.innerText)"` : ''}>${x.organizer}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'venue', this.innerText)"` : ''}>${x.venue}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'participants', this.innerText)"` : ''}>${x.participants}</td>
+                    <td class="py-3 px-3 border-r font-bold text-indigo-600 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'division', this.innerText)"` : ''}>${x.division}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'purpose', this.innerText)"` : ''}>${x.purpose}</td>
+                    <td class="py-3 px-3 border-r ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'deliverable', this.innerText)"` : ''}>${x.deliverable}</td>
+                    <td class="py-3 px-3 border-r font-semibold text-amber-600 ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'status', this.innerText)"` : ''}>${x.status}</td>
+                    <td class="py-3 px-3 border-r">-</td>
+                    <td class="py-3 px-3 border-r">-</td>
+                    <td class="py-3 px-3 border-r">-</td>
+                    <td class="py-3 px-3 border-r">-</td>
+                    <td class="py-3 px-3 border-r">-</td>
+                    <td class="py-3 px-3 border-r text-center ${isAdmin ? 'editable-cell' : ''}" ${isAdmin ? `contenteditable="true" onblur="updateCell('matrix', ${x.id}, 'oans', this.innerText)"` : ''}><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">${x.oans}</span></td>
+                    <td class="py-3 px-3 text-center admin-only ${isAdmin ? '' : 'hidden'}">
+                        <button onclick="deleteMatrix(${x.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('dash-total-engagements').innerText = dbMatrix.length;
+            document.getElementById('dash-total-monitoring').innerText = dbMonitoring.length;
+            document.getElementById('dash-total-allotment').innerText = formatCurrency(allotment);
+            document.getElementById('dash-total-obligations').innerText = formatCurrency(obligations);
+        }
+
+        function handleSaveMonitoring(e) {
+            e.preventDefault();
+            dbMonitoring.push({
+                id: Date.now(),
+                division: document.getElementById('monDivision').value,
+                major: document.getElementById('monMajor').value,
+                title: document.getElementById('monTitle').value,
+                item: document.getElementById('monItem').value,
+                expense: document.getElementById('monExpense').value,
+                source: document.getElementById('monSource').value,
+                type: document.getElementById('monType').value,
+                month: document.getElementById('monMonth').value,
+                pr: document.getElementById('monPr').value,
+                allocated: parseFloat(document.getElementById('monAllocated').value) || 0,
+                actual: parseFloat(document.getElementById('monActual').value) || 0,
+                status: document.getElementById('monStatus').value,
+                bur: document.getElementById('monBur').value,
+                remarks: document.getElementById('monRemarks').value
+            });
+            saveData();
+            closeModal('modalMonitoring');
+            renderAllTables();
+        }
+
+        function handleSaveMatrix(e) {
+            e.preventDefault();
+            dbMatrix.push({
+                id: Date.now(),
+                no: document.getElementById('matNo').value || (dbMatrix.length + 1),
+                division: document.getElementById('matDivision').value,
+                title: document.getElementById('matTitle').value,
+                type: document.getElementById('matType').value,
+                organizer: document.getElementById('matOrganizer').value,
+                venue: document.getElementById('matVenue').value,
+                participants: document.getElementById('matParticipants').value,
+                purpose: document.getElementById('matPurpose').value,
+                deliverable: document.getElementById('matDeliverable').value,
+                status: document.getElementById('matStatus').value,
+                oans: document.getElementById('matOans').value
+            });
+            saveData();
+            closeModal('modalMatrix');
+            renderAllTables();
+        }
+
+        function deleteMonitoring(id) { 
+            dbMonitoring = dbMonitoring.filter(x => x.id !== id); 
+            saveData();
+            renderAllTables(); 
+        }
+        
+        function deleteMatrix(id) { 
+            dbMatrix = dbMatrix.filter(x => x.id !== id); 
+            saveData();
+            renderAllTables(); 
+        }
+
+        function renderCharts() {
+            if (chartStatusInstance) chartStatusInstance.destroy();
+            if (chartEngagementTrendInstance) chartEngagementTrendInstance.destroy();
+
+            const statusCounts = { Ongoing: 0, Pending: 0, Done: 0 };
+            dbMatrix.forEach(m => { if (statusCounts[m.status] !== undefined) statusCounts[m.status]++; });
+
+            document.getElementById('count-ongoing').innerText = statusCounts.Ongoing;
+            document.getElementById('count-pending').innerText = statusCounts.Pending;
+            document.getElementById('count-done').innerText = statusCounts.Done;
+
+            const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+            chartStatusInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ongoing', 'Pending', 'Done'],
+                    datasets: [{ data: [statusCounts.Ongoing, statusCounts.Pending, statusCounts.Done], backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const ctxTrend = document.getElementById('chartEngagementTrend').getContext('2d');
+            chartEngagementTrendInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [{
+                        label: 'Engagement Summary Value (₱)',
+                        data: [2500000, 3800000, 4200000, 5900000, 6400000, 7800000, 8500000, 9200000, 9800000],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 2000000,
+                            max: 10000000,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + (value / 1000000) + 'M';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.onload = () => {
+            saveData();
+            renderAllTables();
+            renderCharts();
+        };
+    </script>
+</body>
+</html>
